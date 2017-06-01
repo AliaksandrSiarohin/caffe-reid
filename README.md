@@ -8,7 +8,7 @@ The official code (written in matconvnet) is available [here](https://github.com
 ![Structure](https://github.com/D-X-Y/caffe-reid/blob/master/figures/person-re-identification-struct.png)
 
 ## Data Preparation
-- download Market-1501 dataset and `ln -s $Market-1501 examples/market1501/`
+- download Market-1501 dataset and put Market-1501 in $HOME/datasets/
 - `cd examples/market1501/mat-codes` and `matlab -nodisplay -r  'generate_train(), exit()'` to generate train, test and qurey data lists.
 
 ## Results on Market-1501
