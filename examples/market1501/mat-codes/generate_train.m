@@ -1,7 +1,6 @@
 clc;clear all;close all;
 
-cur_dir = pwd();
-root_dir = '../Market-1501-v15.09.15'; cd(root_dir); root_dir = pwd(); cd(cur_dir);
+root_dir = fullfile(getenv('HOME'), 'datasets', 'Market-1501-v15.09.15');
 train_dir = fullfile(root_dir, 'bounding_box_train');% database directory
 %% calculate the ID and camera for database images
 train_files = dir([train_dir '/*.jpg']);
@@ -33,7 +32,7 @@ for n = 1:n_train
 	%fprintf(train_list_file, '%s/%s %4d %4d\n', train_dir, train_files(n).name, trainID(n), revers_id(trainID(n)));
 end
 fclose(train_list_file);
-clear *train*; close all;
+%clear *train*; close all;
 
 
 %% test dir
@@ -60,7 +59,7 @@ for n = 1:n_test
 	fprintf(test_list_file, '%s/%s %d\n', test_dir, test_files(n).name, testID(n)-1);
 end
 fclose(test_list_file);
-clear test*; close all;
+%clear test*; close all;
 
 %% query dir
 query_dir = fullfile(root_dir, 'query');% database directory
@@ -86,4 +85,3 @@ for n = 1:n_query
 	fprintf(query_list_file, '%s/%s %d\n', query_dir, query_files(n).name, queryID(n)-1);
 end
 fclose(query_list_file);
-clear all; close all;

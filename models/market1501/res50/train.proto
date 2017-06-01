@@ -2209,7 +2209,7 @@ layer {
   bottom: "score"
   bottom: "label"
   top: "loss"
-  loss_weight: 1
+  loss_weight: 0.5
   propagate_down: true
   propagate_down: false
 }
@@ -2219,7 +2219,7 @@ layer {
   bottom: "score_dif"
   bottom: "label_dif"
   top: "loss_dif"
-  loss_weight: 0.5
+  loss_weight:   1
   propagate_down: true
   propagate_down: false
 }

@@ -9,7 +9,7 @@ The official code (written in matconvnet) is available [here](https://github.com
 
 ## Data Preparation
 - download Market-1501 dataset and `ln -s $Market-1501 examples/market1501/`
-- `cd examples/market1501/mat-codes` and `run generate_train.m` to generate train, test and qurey data lists.
+- `cd examples/market1501/mat-codes` and `matlab -nodisplay -r  'generate_train(), exit()'` to generate train, test and qurey data lists.
 
 ## Results on Market-1501
 
@@ -41,6 +41,9 @@ Many scripts (e.g initialization, testing, training, extract feature and evaluat
 
 ### vgg-reduce
 the atrous version of VGG16 (Semantic image segmentation with deep convolutional nets and fully connected crfs)
+```bash	
+sh models/market1501/vgg_reduce/train.sh --gpu 0,1,2,3
+```
 - final results are [2x 32] : mAP = 0.461156, r1 precision = 0.719715 [Cos + Eucl] [Global MAX Pooling]
 - By dropping the global max pooling layer in training and testing phase, a better performance can be obtained
 - final results are [2x 32] : mAP = 0.511268, r1 precision = 0.745843 [Cos + Eucl] [No Pooling]
