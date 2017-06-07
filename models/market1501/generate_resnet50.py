@@ -91,9 +91,9 @@ def res50_train(mean_value, list_file, is_train=True):
   net = caffe.NetSpec()
   net.data, net.label \
                   = L.ReidData(transform_param=dict(mirror=True,crop_size=224,mean_value=mean_value), 
-                               reid_data_param=dict(source=list_file,batch_size=16,new_height=256,new_width=256,
-                                  pos_fraction=1,neg_fraction=1,pos_limit=1,neg_limit=4,pos_factor=1,neg_factor=1.01), 
-                               ntop = 2)
+           reid_data_param=dict(source=list_file,batch_size=16,new_height=256,new_width=256,
+              pos_fraction=1,neg_fraction=1,pos_limit=1,neg_limit=4,pos_factor=1,neg_factor=1.01), 
+           ntop = 2)
   
   net, final = res50_body(net, 'data',   '', is_train)
 
@@ -146,7 +146,7 @@ solverproto.sp['base_lr'] = "0.001"
 solverproto.sp['stepsize'] = "16000"
 solverproto.sp['max_iter'] = "18000"
 solverproto.sp['snapshot'] = "1000"
-solverproto.sp['iter_size'] = "4"
+solverproto.sp['iter_size'] = "2"
 solverproto.sp['snapshot_prefix'] = "\"{}/snapshot/res50.full\"".format(workdir)
 solverproto.write(osp.join(workdir, 'solver.proto'))
 
@@ -164,3 +164,11 @@ with open(dev_proto, 'w') as f:
 dep_proto = osp.join(workdir, "deploy.proto")
 with open(dep_proto, 'w') as f:
   f.write(res50_dev())
+
+train_shell = osp.join(workdir, "train.sh")
+with open(train_shell, 'w') as f:          
+  f.write('#!/usr/bin/env sh\n')           
+  f.write('model_dir=models/market1501/res50\n')                           
+  f.write('pre_train_dir=${HOME}/datasets/model_pretrained/resnet\n\n')       
+  f.write('GLOG_log_dir=${model_dir}/log ./build/tools/caffe train ')      
+  f.write('--solver ${model_dir}/solver.proto --weights ${pre_train_dir}/ResNet-50-model.caffemodel $@')

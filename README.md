@@ -23,32 +23,30 @@ Many scripts (e.g initialization, testing, training, extract feature and evaluat
 
 ### caffenet
 - `python models/market1501/generate_caffenet.py` for generate caffenet based person re-ID network and solver files.
-- `examples/market1501/training/caffenet_train.sh` for training models.
-- `examples/market1501/extract/extract_prediction.sh` for extracting features of query and test data
-- `cd examples/market1501/evaluation/` and `run evaluation.m` to evaluate performance of the trained model on Market-1501
+- `sh models/market1501/caffenet/train.sh --gpu 0` for training models.
+- `sh examples/market1501/extract/extract_prediction.sh 0 caffenet fc7` for extracting features of query and test data
+- `cd examples/market1501/evaluation/` and `evaluation('caffenet')` to evaluate performance of the trained model on Market-1501
 - final results are [1x128] : mAP = 0.402689, r1 precision = 0.639846 [Euclidean]
 
 ### googlenet
 - GoogleNet-v1 model is already in `models/market1501/googlenet`
-- training and testing processes are similar as previous
+- `sh models/market1501/googlenet/train.sh --gpu 0`
+- `sh examples/market1501/extract/extract_prediction.sh 0 googlenet pool5/7x7_s1`
+- `cd examples/market1501/evaluation/` and `evaluation('googlenet')`
 - final results are [2x 64] : mAP = 0.476404, r1 precision = 0.706948 [Euclidean]
 - final results are [2x 64] : mAP = 0.489998, r1 precision = 0.710214 [Cos + Eucl]
 
 ### vgg16
 - `python models/market1501/generate_vgg16.py` for generate caffenet based person re-ID network and solver files.
-- training and testing processes are similar as previous
-- final results are [2x 36] : mAP = 0.446430, r1 precision = 0.654394 [Failed]
-
-### vgg-reduce
-the atrous version of VGG16 (Semantic image segmentation with deep convolutional nets and fully connected crfs)
-```bash	
-sh models/market1501/vgg_reduce/train.sh --gpu 0,1,2,3
-```
-- final results are [2x 32] : mAP = 0.461156, r1 precision = 0.719715 [Cos + Eucl] [Global MAX Pooling]
-- By dropping the global max pooling layer in training and testing phase, a better performance can be obtained
-- final results are [2x 32] : mAP = 0.511268, r1 precision = 0.745843 [Cos + Eucl] [No Pooling]
+- `sh models/market1501/vgg16/train.sh --gpu 0,1,2,3` for training
+- `sh examples/market1501/extract/extract_prediction.sh 0 vgg fc7` for extracting features
+- `cd examples/market1501/evaluation/` and `evaluation('vgg16')` to evaluate performance of vgg16/fc7 on Market-1501
+- final results are [2x 24] : mAP = 0.446430, r1 precision = 0.654394 [Failed]
 
 ### resnet-50
+- `python models/market1501/generate_resnet50.py`
+- `sh models/market1501/res50/train.sh --gpu 2,3`
+- `sh examples/market1501/extract/extract_prediction.sh 0 res50 pool5`
 - final results are [4x 16] : mAP = 0.593053, r1 precision = 0.801960 [Cos + Eucl]
 
 # Citation

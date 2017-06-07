@@ -1,4 +1,6 @@
-clc;clear all;close all;
+function evaluation( model_name )
+
+%clc;clear all;close all;
 %***********************************************%
 % This code runs on the Market-1501 dataset.    %
 % Please modify the path to your own folder.    %
@@ -13,21 +15,29 @@ clc;clear all;close all;
 
 %query_feature_name = 'query.lst.fc7.mat';
 %test_feature_name = 'test.lst.fc7.mat';
+%model_name = 'vgg_reduce';
 
-query_feature_name = 'query.lst.fc7.mat';
-test_feature_name = 'test.lst.fc7.mat';
+query_feature_name = ['query.lst.' model_name '.feature.mat'];
+test_feature_name  = ['test.lst.'  model_name '.feature.mat'];
 
-datamat_dir = '../datamat/';
-load (fullfile(datamat_dir, 'testData.mat'));
-load (fullfile(datamat_dir, 'queryData.mat'));
-nQuery = length(query_files);
-nTest  = length(test_files);
+datamat_dir = fullfile(fileparts(mfilename('fullpath')), '..', 'datamat');
+
+fprintf('data mat dir : %s\n', datamat_dir);
+test_mat_path  = fullfile(datamat_dir, 'testData.mat');
+query_mat_path = fullfile(datamat_dir, 'queryData.mat');
+test_mat       = load(test_mat_path);
+query_mat      = load(query_mat_path);
+
+nQuery = length(query_mat.query_files);
+nTest  = length(test_mat.test_files);
+
 Hist_query = importdata(fullfile(datamat_dir, query_feature_name))';
 Hist_test  = importdata(fullfile(datamat_dir, test_feature_name))';
+
 assert(nQuery == size(Hist_query, 2));
 assert(nTest == size(Hist_test, 2));
-assert (all(queryCAM >= 1)); assert (all(queryCAM <= 6));
-assert (all(testCAM >= 1)); assert (all(testCAM <= 6));
+assert (all(query_mat.queryCAM >= 1)); assert (all(query_mat.queryCAM <= 6));
+assert (all(test_mat.testCAM >= 1));   assert (all(test_mat.testCAM <= 6));
 fprintf('Load data and features done.\n');
 
 %% search the database and calcuate re-id accuracy
@@ -42,6 +52,11 @@ r1_pairwise = zeros(nQuery, 6);% pairwise rank 1 precision with single query (se
 
 %dist = sqdist(Hist_test, Hist_query); % distance calculate with single query. Note that Euclidean distance is equivalent to cosine distance if vectors are l2-normalized
 dist = cosdist(Hist_test, Hist_query); % distance calculate with single query. For cosine distance
+
+testID   = test_mat.testID;
+queryID  = query_mat.queryID;
+testCAM  = test_mat.testCAM;
+queryCAM = query_mat.queryCAM;
 
 tic;
 parfor k = 1:nQuery
@@ -68,3 +83,5 @@ FCMC = mean(CMC);
 fprintf('single query:           mAP = %f, r1 precision = %f\r cost : %.1f s\n', mean(ap), FCMC(1), toc);
 %% [ap_CM, r1_CM] = draw_confusion_matrix(ap_pairwise, r1_pairwise, queryCAM);
 %% fprintf('average of confusion matrix with single query:  mAP = %f, r1 precision = %f\r\n', (sum(ap_CM(:))-sum(diag(ap_CM)))/30, (sum(r1_CM(:))-sum(diag(r1_CM)))/30);
+
+end
