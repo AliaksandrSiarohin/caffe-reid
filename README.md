@@ -7,9 +7,10 @@ The official code (written in matconvnet) is available [here](https://github.com
 
 ![Structure](https://github.com/D-X-Y/caffe-reid/blob/master/figures/person-re-identification-struct.png)
 
-## Data Preparation
+## Preparation
 - download Market-1501 dataset and put Market-1501 in $HOME/datasets/
 - `cd examples/market1501/mat-codes` and `matlab -nodisplay -r  'generate_train(), exit()'` to generate train, test and qurey data lists.
+- Build with NCLL / cuda-8.0
 
 ## Results on Market-1501
 
@@ -38,7 +39,7 @@ Many scripts (e.g initialization, testing, training, extract feature and evaluat
 
 ### vgg16
 - `python models/market1501/generate_vgg16.py` for generate caffenet based person re-ID network and solver files.
-- `sh models/market1501/vgg16/train.sh --gpu 0,1,2,3` for training
+- `sh models/market1501/vgg16/train.sh --gpu 2,3` for training
 - `sh examples/market1501/extract/extract_prediction.sh 0 vgg fc7` for extracting features
 - `cd examples/market1501/evaluation/` and `evaluation('vgg16')` to evaluate performance of vgg16/fc7 on Market-1501
 - final results are [2x 24] : mAP = 0.446430, r1 precision = 0.654394 [Failed]

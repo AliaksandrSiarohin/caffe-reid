@@ -130,9 +130,11 @@ template <typename Dtype>
 ReidPrefetchingDataLayer<Dtype>::ReidPrefetchingDataLayer(
     const LayerParameter& param)
     : BaseDataLayer<Dtype>(param),
-      prefetch_free_(), prefetch_full_() {
-  for (int i = 0; i < PREFETCH_COUNT; ++i) {
-    prefetch_free_.push(&prefetch_[i]);
+      prefetch_(param.data_param().prefetch()),
+      prefetch_free_(), prefetch_full_(), prefetch_current_() {
+  for (int i = 0; i < prefetch_.size(); ++i) {
+    prefetch_[i].reset(new ReidBatch<Dtype>());
+    prefetch_free_.push(prefetch_[i].get());
   }
 }
 
@@ -147,26 +149,24 @@ void ReidPrefetchingDataLayer<Dtype>::LayerSetUp(
   // seems to cause failures if we do not so.
   CHECK(top.size() <= 2) << "number of top blobs can only be 1 or 2";
   if (top.size() == 2) this->output_labels_ = true;
-  else this->output_labels_ = false;
+  else                 this->output_labels_ = false;
 
-  for (int i = 0; i < PREFETCH_COUNT; ++i) {
-    prefetch_[i].data_.mutable_cpu_data();
-    prefetch_[i].datap_.mutable_cpu_data();
+  for (int i = 0; i < prefetch_.size(); ++i) {
+    prefetch_[i]->data_.mutable_cpu_data();
+    prefetch_[i]->datap_.mutable_cpu_data();
     if (this->output_labels_) {
-      prefetch_[i].label_.mutable_cpu_data();
-      prefetch_[i].labelp_.mutable_cpu_data();
-      prefetch_[i].labeldif_.mutable_cpu_data();
+      prefetch_[i]->label_.mutable_cpu_data();
+      prefetch_[i]->labelp_.mutable_cpu_data();
     }
   }
 #ifndef CPU_ONLY
   if (Caffe::mode() == Caffe::GPU) {
-    for (int i = 0; i < PREFETCH_COUNT; ++i) {
-      prefetch_[i].data_.mutable_gpu_data();
-      prefetch_[i].datap_.mutable_gpu_data();
+    for (int i = 0; i < prefetch_.size(); ++i) {
+      prefetch_[i]->data_.mutable_gpu_data();
+      prefetch_[i]->datap_.mutable_gpu_data();
       if (this->output_labels_) {
-        prefetch_[i].label_.mutable_gpu_data();
-        prefetch_[i].labelp_.mutable_gpu_data();
-        prefetch_[i].labeldif_.mutable_gpu_data();
+        prefetch_[i]->label_.mutable_gpu_data();
+        prefetch_[i]->labelp_.mutable_gpu_data();
       }
     }
   }
@@ -181,10 +181,8 @@ template <typename Dtype>
 void ReidPrefetchingDataLayer<Dtype>::InternalThreadEntry() {
 #ifndef CPU_ONLY
   cudaStream_t stream;
-  cudaStream_t streamp;
   if (Caffe::mode() == Caffe::GPU) {
     CUDA_CHECK(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-    CUDA_CHECK(cudaStreamCreateWithFlags(&streamp, cudaStreamNonBlocking));
   }
 #endif
 
@@ -195,9 +193,12 @@ void ReidPrefetchingDataLayer<Dtype>::InternalThreadEntry() {
 #ifndef CPU_ONLY
       if (Caffe::mode() == Caffe::GPU) {
         batch->data_.data().get()->async_gpu_push(stream);
+        batch->datap_.data().get()->async_gpu_push(stream);
+        if (this->output_labels_) {
+          batch->label_.data().get()->async_gpu_push(stream);
+          batch->labelp_.data().get()->async_gpu_push(stream);
+        }
         CUDA_CHECK(cudaStreamSynchronize(stream));
-        batch->datap_.data().get()->async_gpu_push(streamp);
-        CUDA_CHECK(cudaStreamSynchronize(streamp));
       }
 #endif
       prefetch_full_.push(batch);
@@ -208,7 +209,6 @@ void ReidPrefetchingDataLayer<Dtype>::InternalThreadEntry() {
 #ifndef CPU_ONLY
   if (Caffe::mode() == Caffe::GPU) {
     CUDA_CHECK(cudaStreamDestroy(stream));
-    CUDA_CHECK(cudaStreamDestroy(streamp));
   }
 #endif
 }
@@ -225,7 +225,7 @@ void ReidPrefetchingDataLayer<Dtype>::Forward_cpu(
   top[0]->Reshape(prefetch_current_->data_.num()*2, prefetch_current_->data_.channels(), prefetch_current_->data_.height(), prefetch_current_->data_.width());
   // Copy the data
   caffe_copy(prefetch_current_->data_.count(),  prefetch_current_->data_.cpu_data(),  top[0]->mutable_cpu_data());
-  caffe_copy(prefetch_current_->datap_.count(), prefetch_current_->datap_.cpu_data(), top[0]->mutable_cpu_data()+batch->data_.count());
+  caffe_copy(prefetch_current_->datap_.count(), prefetch_current_->datap_.cpu_data(), top[0]->mutable_cpu_data()+prefetch_current_->data_.count());
   DLOG(INFO) << "Prefetch copied";
   if (this->output_labels_) {
     // Reshape to loaded labels.
@@ -234,7 +234,7 @@ void ReidPrefetchingDataLayer<Dtype>::Forward_cpu(
     top[1]->Reshape(shape);
     // Copy the labels.
     caffe_copy(prefetch_current_->label_.count(),  prefetch_current_->label_.cpu_data(),  top[1]->mutable_cpu_data());
-    caffe_copy(prefetch_current_->labelp_.count(), prefetch_current_->labelp_.cpu_data(), top[1]->mutable_cpu_data()+batch->label_.count());
+    caffe_copy(prefetch_current_->labelp_.count(), prefetch_current_->labelp_.cpu_data(), top[1]->mutable_cpu_data()+prefetch_current_->label_.count());
   }
   DLOG(INFO) << "ReidPrefetchingDataLayer : Forward_cpu Done";
 }

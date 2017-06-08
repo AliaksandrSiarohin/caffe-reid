@@ -96,9 +96,9 @@ void ReidDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
   prefetch_top_shape[0] = batch_size;
   top[0]->Reshape(top_shape);
   //top[1]->Reshape(top_shape);
-  for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-    this->prefetch_[i].data_.Reshape(prefetch_top_shape);
-    this->prefetch_[i].datap_.Reshape(prefetch_top_shape);
+  for (int i = 0; i < this->prefetch_.size(); ++i) {
+    this->prefetch_[i]->data_.Reshape(prefetch_top_shape);
+    this->prefetch_[i]->datap_.Reshape(prefetch_top_shape);
   }
   LOG(INFO) << "output data size: " << top[0]->num() << ","
       << top[0]->channels() << "," << top[0]->height() << ","
@@ -111,10 +111,9 @@ void ReidDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
     vector<int> label_shape(1, batch_size*2);
     top[1]->Reshape(label_shape);
     vector<int> prefetch_label_shape(1, batch_size);
-    for (int i = 0; i < this->PREFETCH_COUNT; ++i) {
-      this->prefetch_[i].label_.Reshape(prefetch_label_shape);
-      this->prefetch_[i].labelp_.Reshape(prefetch_label_shape);
-      this->prefetch_[i].labeldif_.Reshape(prefetch_label_shape);
+    for (int i = 0; i < this->prefetch_.size(); ++i) {
+      this->prefetch_[i]->label_.Reshape(prefetch_label_shape);
+      this->prefetch_[i]->labelp_.Reshape(prefetch_label_shape);
     }
     LOG(INFO) << "output label size : " << top[1]->shape_string();
   }
@@ -152,7 +151,6 @@ void ReidDataLayer<Dtype>::load_batch(ReidBatch<Dtype>* batch) {
   Dtype* prefetch_datap = batch->datap_.mutable_cpu_data();
   Dtype* prefetch_label = batch->label_.mutable_cpu_data();
   Dtype* prefetch_labelp = batch->labelp_.mutable_cpu_data();
-  Dtype* prefetch_labeldif = batch->labeldif_.mutable_cpu_data();
 
   for (int item_id = 0; item_id < batch_size; ++item_id) {
     // get a blob
@@ -182,9 +180,8 @@ void ReidDataLayer<Dtype>::load_batch(ReidBatch<Dtype>* batch) {
     CHECK_LT(lines_[pair_idx].second, this->label_set.size());
     prefetch_label[item_id]    = lines_[true_idx].second;
     prefetch_labelp[item_id]   = lines_[pair_idx].second;
-    prefetch_labeldif[item_id] = lines_[true_idx].second == lines_[pair_idx].second;
 
-    DLOG(INFO) << "Idx : " << item_id << " : " << lines_[true_idx].second << " vs " << lines_[pair_idx].second << " ..=.. " << prefetch_labeldif[item_id];
+    DLOG(INFO) << "Idx : " << item_id << " : " << lines_[true_idx].second << " vs " << lines_[pair_idx].second;
   }
   batch_timer.Stop();
   DLOG(INFO) << "Pair Idx : (" << batches[0] << "," << batches_pair[0] << ")";

@@ -34,7 +34,7 @@ void ReidPrefetchingDataLayer<Dtype>::Forward_gpu(
   top[0]->Reshape(prefetch_current_->data_.num()*2, prefetch_current_->data_.channels(), prefetch_current_->data_.height(), prefetch_current_->data_.width());
   // Copy the data
   caffe_copy(prefetch_current_->data_.count(),  prefetch_current_->data_.gpu_data(),  top[0]->mutable_gpu_data());
-  caffe_copy(prefetch_current_->datap_.count(), prefetch_current_->datap_.gpu_data(), top[0]->mutable_gpu_data()+batch->data_.count());
+  caffe_copy(prefetch_current_->datap_.count(), prefetch_current_->datap_.gpu_data(), top[0]->mutable_gpu_data()+prefetch_current_->data_.count());
   if (this->output_labels_) {
     // Reshape to loaded labels.
     vector<int> shape = prefetch_current_->label_.shape();
@@ -44,7 +44,7 @@ void ReidPrefetchingDataLayer<Dtype>::Forward_gpu(
     top[1]->Reshape(shape);
     // Copy the labels.
     caffe_copy(prefetch_current_->label_.count(),  prefetch_current_->label_.gpu_data(),  top[1]->mutable_gpu_data());
-    caffe_copy(prefetch_current_->labelp_.count(), prefetch_current_->labelp_.gpu_data(), top[1]->mutable_gpu_data()+batch->label_.count());
+    caffe_copy(prefetch_current_->labelp_.count(), prefetch_current_->labelp_.gpu_data(), top[1]->mutable_gpu_data()+prefetch_current_->label_.count());
   }
 }
 
