@@ -34,21 +34,20 @@ Many scripts (e.g initialization, testing, training, extract feature and evaluat
 - `sh models/market1501/googlenet/train.sh --gpu 0`
 - `sh examples/market1501/extract/extract_prediction.sh 0 googlenet pool5/7x7_s1`
 - `cd examples/market1501/evaluation/` and `evaluation('googlenet')`
-- final results are [2x 64] : mAP = 0.476404, r1 precision = 0.706948 [Euclidean]
-- final results are [2x 64] : mAP = 0.489998, r1 precision = 0.710214 [Cos + Eucl]
+- final results are : mAP = 0.511545, r1 precision = 0.735154 [Cos + Eucl]
 
 ### vgg16
 - `python models/market1501/generate_vgg16.py` for generate caffenet based person re-ID network and solver files.
 - `sh models/market1501/vgg16/train.sh --gpu 2,3` for training
-- `sh examples/market1501/extract/extract_prediction.sh 0 vgg fc7` for extracting features
+- `sh examples/market1501/extract/extract_prediction.sh 0 vgg16 fc7` for extracting features
 - `cd examples/market1501/evaluation/` and `evaluation('vgg16')` to evaluate performance of vgg16/fc7 on Market-1501
-- final results are [2x 24] : mAP = 0.446430, r1 precision = 0.654394 [Failed]
+- final results are [2x 24] : mAP = 0.456417, r1 precision = 0.677257
 
 ### resnet-50
 - `python models/market1501/generate_resnet50.py`
-- `sh models/market1501/res50/train.sh --gpu 2,3`
+- `sh models/market1501/res50/train.sh --gpu 1,2,3`
 - `sh examples/market1501/extract/extract_prediction.sh 0 res50 pool5`
-- final results are [4x 16] : mAP = 0.593053, r1 precision = 0.801960 [Cos + Eucl]
+- final results are : mAP = 0.585765, r1 precision = 0.790974 [Cos + Eucl]
 
 # Citation
 Please cite this paper in your publications if it helps your research:
