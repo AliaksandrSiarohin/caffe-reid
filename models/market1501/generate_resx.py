@@ -9,8 +9,7 @@ from caffe.model_libs import *
 def res_unit(net, bottom, in_c, out_c, stride, base_name, post, is_train=False):
 
   assert (out_c % 4 == 0)
-  #param = [dict(lr_mult=0.1,decay_mult=1), dict(lr_mult=0.2,decay_mult=0)]
-  param = None
+  param = [dict(lr_mult=0.1,decay_mult=1), dict(lr_mult=0.2,decay_mult=0)]
 
   pase_name = base_name
   base_name = base_name + post
@@ -47,7 +46,7 @@ def res_unit(net, bottom, in_c, out_c, stride, base_name, post, is_train=False):
       
 def res50_body(net, data, post, is_train):
   net['conv1'+post], net['bn_conv1'+post], net['scale_conv1'+post], net['conv1_relu'+post] = \
-      conv_bn_scale(net[data],       7, 64, pad = 3, stride = 2, is_train=is_train, has_relu=True) 
+      conv_bn_scale(net[data],       7, 64, pad = 3, stride = 2, is_train=is_train, has_relu=True, param = [dict(lr_mult=0.01,decay_mult=1), dict(lr_mult=0.02,decay_mult=0)])
 
   net['pool1'+post] = max_pool(net['conv1_relu'+post], 3, stride=2)
   names, outs = ['2a', '2b', '2c'], [256, 256, 256]
@@ -89,37 +88,28 @@ def res50_body(net, data, post, is_train):
   return net, final
   
 # main netspec wrapper
-def res50_train(mean_value, list_file, is_train=True):
+def res50_train(mean_value, list_file, is_train, batch_size):
   # setup the python data layer 
   net = caffe.NetSpec()
   net.data, net.label \
                   = L.ReidData(transform_param=dict(mirror=True,crop_size=224,mean_value=mean_value), 
-           reid_data_param=dict(source=list_file,batch_size=16,new_height=256,new_width=256,
-              pos_fraction=1,neg_fraction=1,pos_limit=1,neg_limit=4,pos_factor=1,neg_factor=1.01), 
+           reid_data_param=dict(source=list_file,batch_size=batch_size, new_height=256, new_width=256,
+              pos_fraction=1,neg_fraction=1,pos_limit=1,neg_limit=4,pos_factor=1, neg_factor=1.01), 
            ntop = 2)
   
   net, final = res50_body(net, 'data',   '', is_train)
 
-  #param = [dict(lr_mult=1,decay_mult=1), dict(lr_mult=2,decay_mult=0)]
-  param = None
-
+  param = [dict(lr_mult=1,decay_mult=1), dict(lr_mult=2,decay_mult=0)]
   net['score']     = fc_relu(net[final],       nout=751, is_train=is_train, has_relu=False, param=param)
-  net['euclidean'], net['label_dif'] = L.PairEuclidean(net[final], net['label'], ntop = 2)
+  #net['euclidean'], net['label_dif'] = L.PairEuclidean(net[final], net['label'], ntop = 2)
+  net['label_dif'] = L.PairReidLabel(net['label'], propagate_down=[0], ntop = 1)
+
+  net['feature_a'], net['feature_b'] = L.Slice(net[final], slice_param=dict(axis=0, slice_point=batch_size), ntop = 2)
+  net['euclidean'] = L.Eltwise(net['feature_a'], net['feature_b'], operation = P.Eltwise.PROD)
   net['score_dif'] = fc_relu(net['euclidean'], nout=2,   is_train=is_train, has_relu=False, param=param)
   
   net['loss']      = L.SoftmaxWithLoss(net['score'],     net['label']    , propagate_down=[1,0], loss_weight=0.5)
   net['loss_dif']  = L.SoftmaxWithLoss(net['score_dif'], net['label_dif'], propagate_down=[1,0], loss_weight=  1)
-  return str(net.to_proto())
-
-def res50_dev(data_param = dict(shape=dict(dim=[2, 3, 224, 224])), label_param = dict(shape=dict(dim=[2]))):
-  # setup the python data layer 
-  net = caffe.NetSpec()
-  net['data']   = L.Input(input_param = data_param)
-  net['label'] = L.Input(input_param = label_param)
-  net, final = res50_body(net, 'data', '',     is_train=False)
-  net['score']     = fc_relu(net[final],     nout=751, is_train=False, has_relu=False)
-  net['euclidean'], net['label_dif'] = L.PairEuclidean(net[final], net['label'], ntop = 2)
-  net['score_dif'] = fc_relu(net['euclidean'], nout=2,   is_train=False, has_relu=False)
   return str(net.to_proto())
 
 def res50_score(input_param = dict(shape=dict(dim=[1, 3, 224, 224]))):
@@ -131,7 +121,7 @@ def res50_score(input_param = dict(shape=dict(dim=[1, 3, 224, 224]))):
   net['prediction'] = L.Softmax(net['score'])
   return str(net.to_proto())
 
-workdir = osp.join(osp.dirname(__file__), 'res50')
+workdir = osp.join(osp.dirname(__file__), 'resxx50')
 if not os.path.isdir(workdir):
   os.makedirs(workdir)
 
@@ -153,23 +143,20 @@ solverproto.sp['stepsize'] = "16000"
 solverproto.sp['max_iter'] = "18000"
 solverproto.sp['snapshot'] = "1000"
 solverproto.sp['iter_size'] = "2"
-solverproto.sp['snapshot_prefix'] = "\"{}/snapshot/res50.full\"".format(workdir)
+solverproto.sp['snapshot_prefix'] = "\"{}/snapshot/resxx50.full\"".format(workdir)
 solverproto.write(osp.join(workdir, 'solver.proto'))
+batch_size = 16
 
 list_file = 'examples/market1501/lists/train.lst'
 
 mean_value = [97.8286, 99.0468, 105.606]
 # write train net.
 with open(train_proto, 'w') as f:
-  f.write(res50_train(mean_value, list_file, True))
+  f.write(res50_train(mean_value, list_file, True, batch_size))
 
 dev_proto = osp.join(workdir, "dev.proto")
 with open(dev_proto, 'w') as f:
   f.write(res50_score())
-
-dep_proto = osp.join(workdir, "deploy.proto")
-with open(dep_proto, 'w') as f:
-  f.write(res50_dev())
 
 train_shell = osp.join(workdir, "train.sh")
 with open(train_shell, 'w') as f:          

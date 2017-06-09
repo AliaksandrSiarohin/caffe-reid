@@ -22,6 +22,8 @@ def conv_relu(bottom, ks, nout, stride=1, pad=0, group=1, param=None, is_train=F
     kwargs['pad'] = pad 
   if (bias_term==False):
     kwargs['bias_term'] = bias_term
+    if param != None and len(param) == 2:
+      param = param[0]
   if (is_train):
     #kwargs['weight_filler'] = dict(type='gaussian', std=0.01)
     kwargs['weight_filler'] = dict(type='xavier')

@@ -45,7 +45,7 @@ Many scripts (e.g initialization, testing, training, extract feature and evaluat
 
 ### resnet-50
 - `python models/market1501/generate_resnet50.py`
-- `sh models/market1501/res50/train.sh --gpu 1,2,3`
+- `sh models/market1501/res50/train.sh --gpu 2,3`
 - `sh examples/market1501/extract/extract_prediction.sh 0 res50 pool5`
 - final results are : mAP = 0.585765, r1 precision = 0.790974 [Cos + Eucl]
 
