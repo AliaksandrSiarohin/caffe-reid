@@ -43,8 +43,8 @@ def caffenet_train(mean_value, list_file, is_train=True):
   net['euclidean'], net['label_dif'] = L.PairEuclidean(net[final], net['label'], ntop = 2)
   net['score_dif'] = fc_relu(net['euclidean'], nout=2, is_train=is_train, has_relu=False)
   
-  net['loss']      = L.SoftmaxWithLoss(net['score'],     net['label']    , propagate_down=[1,0], loss_weight=0.5)
-  net['loss_dif']  = L.SoftmaxWithLoss(net['score_dif'], net['label_dif'], propagate_down=[1,0], loss_weight=1)
+  net['loss']      = L.SoftmaxWithLoss(net['score'],     net['label']    , propagate_down=[1,0], loss_weight=1)
+  net['loss_dif']  = L.SoftmaxWithLoss(net['score_dif'], net['label_dif'], propagate_down=[1,0], loss_weight=0.5)
   return str(net.to_proto())
 
 def caffenet_dev(data_param = dict(shape=dict(dim=[2, 3, 227, 227])), label_param = dict(shape=dict(dim=[2]))):

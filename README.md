@@ -10,7 +10,7 @@ The official code (written in matconvnet) is available [here](https://github.com
 ## Preparation
 - download Market-1501 dataset and put Market-1501 in $HOME/datasets/
 - `cd examples/market1501/mat-codes` and `matlab -nodisplay -r  'generate_train(), exit()'` to generate train, test and qurey data lists.
-- Build with NCLL / cuda-8.0
+- Build with NCLL / cuda-8.0 / cudnn-v5.1
 
 ## Results on Market-1501
 
@@ -23,6 +23,7 @@ Many scripts (e.g initialization, testing, training, extract feature and evaluat
 [iter_size * batch_size] = real batch_size
 
 ### caffenet
+- Link to the [pre-trained caffenet model](http://dl.caffe.berkeleyvision.org/bvlc_reference_caffenet.caffemodel)
 - `python models/market1501/generate_caffenet.py` for generate caffenet based person re-ID network and solver files.
 - `sh models/market1501/caffenet/train.sh --gpu 0` for training models.
 - `sh examples/market1501/extract/extract_prediction.sh 0 caffenet fc7` for extracting features of query and test data
@@ -30,6 +31,7 @@ Many scripts (e.g initialization, testing, training, extract feature and evaluat
 - final results are [1x128] : mAP = 0.402689, r1 precision = 0.639846 [Euclidean]
 
 ### googlenet
+- Link to the [pre-trained caffenet model](http://dl.caffe.berkeleyvision.org/bvlc_googlenet.caffemodel)
 - GoogleNet-v1 model is already in `models/market1501/googlenet`
 - `sh models/market1501/googlenet/train.sh --gpu 0`
 - `sh examples/market1501/extract/extract_prediction.sh 0 googlenet pool5/7x7_s1`
