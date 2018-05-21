@@ -94,7 +94,7 @@ def res50_train(mean_value, list_file, is_train=True):
   net = caffe.NetSpec()
   net.data, net.label \
                   = L.ReidData(transform_param=dict(mirror=True,crop_size=224,mean_value=mean_value), 
-           reid_data_param=dict(source=list_file,batch_size=16,new_height=256,new_width=256,
+           reid_data_param=dict(source=list_file,batch_size=8,new_height=256,new_width=256,
               pos_fraction=1,neg_fraction=1,pos_limit=1,neg_limit=4,pos_factor=1,neg_factor=1.01), 
            ntop = 2)
   
@@ -149,8 +149,8 @@ train_proto = osp.join(workdir, "train.proto")
 solverproto = tools.CaffeSolver(trainnet_prototxt_path = train_proto, testnet_prototxt_path = None)
 solverproto.sp['display'] = "100"
 solverproto.sp['base_lr'] = "0.001"
-solverproto.sp['stepsize'] = "16000"
-solverproto.sp['max_iter'] = "18000"
+solverproto.sp['stepsize'] = "90000"
+solverproto.sp['max_iter'] = "100000"
 solverproto.sp['snapshot'] = "1000"
 solverproto.sp['iter_size'] = "2"
 solverproto.sp['snapshot_prefix'] = "\"{}/snapshot/res50.full\"".format(workdir)
