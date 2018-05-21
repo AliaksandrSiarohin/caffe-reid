@@ -1,5 +1,8 @@
 # A Discriminatively Learned CNN Embedding for Person Re-identification
 
+** This repository is changed, to handle (x10) augumented dataset. Previously all data was stored in memory not it loading from disc ** 
+** Also number of iterations is increased x10 times. **
+
 A [caffe](https://github.com/BVLC/caffe)-based implementation of [this paper](https://arxiv.org/abs/1611.05666),
 providing whole training, testing and evaluation codes.
 

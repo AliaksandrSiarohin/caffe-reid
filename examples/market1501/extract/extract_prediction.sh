@@ -29,7 +29,7 @@ fi
 #feature_name=fc7
 #feature_name=pool5/7x7_s1
 #feature_name=pool5
-model_file=./models/market1501/$base_model/snapshot/${base_model}.full_iter_18000.caffemodel
+model_file=./models/market1501/$base_model/snapshot/${base_model}.full_iter_180000.caffemodel
 
 python examples/market1501/extract/extract_feature.py \
 	examples/market1501/lists/test.lst \

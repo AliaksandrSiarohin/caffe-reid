@@ -21,7 +21,7 @@ else
     echo "use $3 as base model"    
     feature_name=$3 
 fi
-model_file=./models/market1501/$base_model/snapshot/${base_model}.full_iter_18000.caffemodel
+model_file=./models/market1501/$base_model/snapshot/${base_model}.full_iter_200000.caffemodel
 
 python examples/market1501/extract/extract_feature.py \
 	examples/market1501/lists/train.lst \

@@ -74,12 +74,6 @@ void ReidDataLayer<Dtype>::DataLayerSetUp(const vector<Blob<Dtype>*>& bottom,
 
   CHECK_GT(lines_.size(), 0);
 
-  this->cv_imgs_.clear();
-  for (size_t lines_id_ = 0; lines_id_ < this->lines_.size(); lines_id_++) {
-    cv::Mat cv_img = ReadImageToCVMat(lines_[lines_id_].first, new_height, new_width, is_color);
-    CHECK(cv_img.data) << "Could not load " << lines_[lines_id_].first;
-    this->cv_imgs_.push_back(cv_img);
-  }
   // Read an image, and use it to initialize the top blob.
   cv::Mat cv_img = ReadImageToCVMat(lines_[0].first,
                                     new_height, new_width, is_color);
@@ -133,11 +127,15 @@ void ReidDataLayer<Dtype>::load_batch(ReidBatch<Dtype>* batch) {
   const vector<size_t> batches = this->batch_ids();
   const vector<size_t> batches_pair = this->batch_pairs(batches);
 
+  const int new_height = this->layer_param_.reid_data_param().new_height();
+  const int new_width  = this->layer_param_.reid_data_param().new_width();
+  const bool is_color  = this->layer_param_.reid_data_param().is_color();
+
   CHECK_EQ(batches.size(), batch_size);
   CHECK_EQ(batches_pair.size(), batch_size);
   // Reshape according to the first image of each batch
   // on single input batches allows for inputs of varying dimension.
-  cv::Mat cv_img = this->cv_imgs_[batches[0]];
+  cv::Mat cv_img = ReadImageToCVMat(this->lines_[batches[0]].first, new_height, new_width, is_color);
   CHECK(cv_img.data) << "Could not load " << this->lines_[batches[0]].first;
   // Use data_transformer to infer the expected blob shape from a cv_img.
   vector<int> top_shape = this->data_transformer_->InferBlobShape(cv_img);
@@ -157,8 +155,8 @@ void ReidDataLayer<Dtype>::load_batch(ReidBatch<Dtype>* batch) {
     timer.Start();
     const size_t true_idx = batches[item_id];
     const size_t pair_idx = batches_pair[item_id];
-    cv::Mat cv_img_true = this->cv_imgs_[ true_idx ];
-    cv::Mat cv_img_pair = this->cv_imgs_[ pair_idx ];
+    cv::Mat cv_img_true = ReadImageToCVMat(this->lines_[true_idx].first, new_height, new_width, is_color);
+    cv::Mat cv_img_pair = ReadImageToCVMat(this->lines_[pair_idx].first, new_height, new_width, is_color);
     CHECK(cv_img_true.data) << "Could not load " << this->lines_[true_idx].first;
     CHECK(cv_img_pair.data) << "Could not load " << this->lines_[pair_idx].first;
     read_time += timer.MicroSeconds();
